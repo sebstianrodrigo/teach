@@ -76,3 +76,100 @@ VALUES ('John', 'Doe', '2000-01-15 08:30:00', 'john.doe@example.com', 1);
 ```
 
 En este ejemplo, estamos insertando un usuario con el nombre "John Doe", una fecha de nacimiento con fecha y hora `2000-01-15 08:30:00`, un correo electrónico `john.doe@example.com`, y un estado de actividad `IsActive` igual a 1 (activo).
+
+## Peticiones HTTP en .NET 6 con C#
+En aplicaciones web, las peticiones HTTP se utilizan para comunicar el cliente con el servidor. Las peticiones más comunes son:
+
+### GET
+Se usa para solicitar datos del servidor. No modifica el estado del servidor.
+
+**Ejemplo en .NET 6 con C#:**
+
+```csharp
+[HttpGet]
+public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+{
+    return await _context.Users.ToListAsync();
+}
+```
+
+### POST
+Se usa para enviar datos al servidor y crear un nuevo recurso.
+
+**Ejemplo en .NET 6 con C#:**
+
+```csharp
+[HttpPost]
+public async Task<ActionResult<User>> PostUser(User user)
+{
+    _context.Users.Add(user);
+    await _context.SaveChangesAsync();
+
+    return CreatedAtAction("GetUser", new { id = user.UserID }, user);
+}
+```
+
+### PUT
+Se usa para actualizar un recurso existente en el servidor.
+
+**Ejemplo en .NET 6 con C#:**
+
+```csharp
+[HttpPut("{id}")]
+public async Task<IActionResult> PutUser(Guid id, User user)
+{
+    if (id != user.UserID)
+    {
+        return BadRequest();
+    }
+
+    _context.Entry(user).State = EntityState.Modified;
+
+    try
+    {
+        await _context.SaveChangesAsync();
+    }
+    catch (DbUpdateConcurrencyException)
+    {
+        if (!UserExists(id))
+        {
+            return NotFound();
+        }
+        else
+        {
+            throw;
+        }
+    }
+
+    return NoContent();
+}
+```
+
+### DELETE
+Se usa para eliminar un recurso del servidor.
+
+**Ejemplo en .NET 6 con C#:**
+
+```csharp
+[HttpDelete("{id}")]
+public async Task<IActionResult> DeleteUser(Guid id)
+{
+    var user = await _context.Users.FindAsync(id);
+    if (user == null)
+    {
+        return NotFound();
+    }
+
+    _context.Users.Remove(user);
+    await _context.SaveChangesAsync();
+
+    return NoContent();
+}
+```
+
+### Explicación de las Peticiones
+- **GET**: Recupera datos del servidor. En el ejemplo, `GetUsers` devuelve una lista de todos los usuarios.
+- **POST**: Envía datos al servidor para crear un nuevo recurso. En el ejemplo, `PostUser` añade un nuevo usuario a la base de datos.
+- **PUT**: Actualiza un recurso existente. En el ejemplo, `PutUser` actualiza los datos de un usuario existente.
+- **DELETE**: Elimina un recurso del servidor. En el ejemplo, `DeleteUser` elimina un usuario basado en su `UserID`.
+
